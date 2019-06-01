@@ -1,0 +1,73 @@
+name: rust
+base: core18
+version: 1.35.0
+license: Apache-2.0 AND MIT
+summary: Rust programming language compiler, linker and other tools
+description: |
+  Rust is a multi-paradigm system programming language focused on safety,
+  especially safe concurrency. Rust is syntactically similar to C++,
+  but is designed to provide better memory safety while maintaining high performance.
+  .
+  This snap provides rustc, cargo, rustfmt, rustdoc, rls, rust-gdb and others.
+
+grade: devel
+confinement: strict
+
+apps:
+  cargo:
+    command: bin/cargo
+    completer: etc/bash_completion.d/cargo
+    plugs:
+      - home
+      - network
+  cargo-clippy:
+    command: bin/cargo-clippy
+  cargo-fmt:
+    command: bin/cargo-fmt
+  cargo-miri:
+    command: bin/cargo-miri
+  clippy-driver:
+    command: bin/clippy-driver
+  miri:
+    command: bin/miri
+  rls:
+    command: bin/rls
+  rust-gdb:
+    command: bin/rust-gdb
+  rustgdbgui:
+    command: bin/rust-gdbgui
+  rustc:
+    command: bin/rustc
+    plugs:
+      - home
+  rustdoc:
+    command: bin/rustdoc
+  rustfmt:
+    command: bin/rustfmt
+
+layout:
+  # rustc expects to find cc in PATH
+  /usr/bin/cc:
+    symlink: $SNAP/usr/bin/gcc
+  # without this, ld cannot find libraries
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET:
+    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET
+
+parts:
+  rust:
+    plugin: nil
+    source:
+      - on amd64: https://static.rust-lang.org/dist/rust-$SNAPCRAFT_PROJECT_VERSION-x86_64-unknown-linux-gnu.tar.gz
+      - on i386: https://static.rust-lang.org/dist/rust-$SNAPCRAFT_PROJECT_VERSION-i686-unknown-linux-gnu.tar.gz
+      - on armhf: https://static.rust-lang.org/dist/rust-$SNAPCRAFT_PROJECT_VERSION-arm-unknown-linux-gnueabihf.tar.gz
+      - on arm64: https://static.rust-lang.org/dist/rust-$SNAPCRAFT_PROJECT_VERSION-aarch64-unknown-linux-gnu.tar.gz
+    stage-packages:
+      - gcc
+      - libc6-dev
+    override-build: |
+      ./install.sh \
+        --destdir=$SNAPCRAFT_PART_INSTALL \
+        --prefix=/ \
+        --without=rust-docs
+    prime:
+      - -share/man
