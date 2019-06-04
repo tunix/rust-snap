@@ -8,7 +8,7 @@ description: |
   especially safe concurrency. Rust is syntactically similar to C++,
   but is designed to provide better memory safety while maintaining high performance.
   .
-  This snap provides rustc, cargo, rustfmt, rustdoc, rls, rust-gdb and others.
+  This snap provides cargo and rustc.
 
 grade: devel
 confinement: strict
@@ -20,36 +20,13 @@ apps:
     plugs:
       - home
       - network
-  cargo-clippy:
-    command: bin/cargo-clippy
-  cargo-fmt:
-    command: bin/cargo-fmt
-  cargo-miri:
-    command: bin/cargo-miri
-  clippy-driver:
-    command: bin/clippy-driver
-  miri:
-    command: bin/miri
-  rls:
-    command: bin/rls
-  rust-gdb:
-    command: bin/rust-gdb
-  rustgdbgui:
-    command: bin/rust-gdbgui
   rustc:
     command: bin/rustc
     plugs:
       - home
-  rustdoc:
-    command: bin/rustdoc
-  rustfmt:
-    command: bin/rustfmt
 
 layout:
-  # rustc expects to find cc in PATH
-  /usr/bin/cc:
-    symlink: $SNAP/usr/bin/gcc
-  # without this, ld cannot find libraries
+  # rustc is looking there for static libraries
   /usr/lib/$SNAPCRAFT_ARCH_TRIPLET:
     bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET
 
@@ -65,11 +42,17 @@ parts:
       - on ppc64el: https://static.rust-lang.org/dist/rust-$SNAPCRAFT_PROJECT_VERSION-powerpc64le-unknown-linux-gnu.tar.gz
     stage-packages:
       - gcc
+      - libgcc1
       - libc6-dev
     override-build: |
+      ln -s gcc $SNAPCRAFT_PART_INSTALL/usr/bin/cc
       ./install.sh \
         --destdir=$SNAPCRAFT_PART_INSTALL \
         --prefix=/ \
-        --without=rust-docs
+        --without=rust-docs,llvm-tools-preview,rustfmt-preview,miri-preview,clippy-preview,rls-preview
     prime:
       - -share/man
+      - -share/doc
+      - -usr/share/doc
+      - -usr/share/lintian
+      - -usr/share/man
